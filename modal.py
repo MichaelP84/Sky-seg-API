@@ -79,14 +79,12 @@ def process_mask(file: dict):
         base64_image_data = base64_image_data.split(",")[1]
         
     image_data = base64.b64decode(base64_image_data)
-    # print(image_data)
     decoded = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)
     img = cv2.cvtColor(decoded, cv2.COLOR_BGR2RGB)
     mask = get_mask(model, img, use_amp=not fp32, s=im_size)
     
     img = np.concatenate((mask * img + 1 - mask, mask * 255), axis=2).astype(np.uint8)
     img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
-    # cv2.imwrite(f'{opt.out}/{i:06d}.png', img)
     
     # convert to base64
     retval, buffer = cv2.imencode('.png', img)

@@ -8,6 +8,7 @@ import modal
 from modal import Image, web_endpoint
 import base64
 
+    
 
 net_name = 'isnet_is'
 ckpt = 'ckpt/isnetis.ckpt'
@@ -83,11 +84,20 @@ def process_mask(file: dict):
     img = cv2.cvtColor(decoded, cv2.COLOR_BGR2RGB)
     mask = get_mask(model, img, use_amp=not fp32, s=im_size)
     
-    img = np.concatenate((mask * img + 1 - mask, mask * 255), axis=2).astype(np.uint8)
-    img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
+    # img is the original image masked, color kept
+    # img = np.concatenate((mask * img + 1 - mask, mask * 255), axis=2).astype(np.uint8)
+    # img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
     
+    _, mask = cv2.threshold(mask, 0.5, 1, cv2.THRESH_BINARY)
+
+    # Convert mask values from [0, 1] to [0, 255]
+    mask = (mask * 255).astype(np.uint8)
+
+    # Convert the single-channel grayscale mask to a 3-channel image
+    mask_3channel = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+
     # convert to base64
-    retval, buffer = cv2.imencode('.png', img)
+    retval, buffer = cv2.imencode('.png', mask_3channel)
     img_base64 = base64.b64encode(buffer).decode('utf-8')
     
     return {"mask": img_base64}

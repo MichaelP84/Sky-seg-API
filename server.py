@@ -16,8 +16,8 @@ if (not modal.is_local()):
 im_size = 1024
 
 device = 'cpu'
-# if (not modal.is_local()):
-#     device = 'cuda:0'
+if (not modal.is_local()):
+    device = 'cuda:0'
     
     
 fp32 = False
@@ -50,8 +50,6 @@ seg_image = Image.debian_slim().copy_local_file(
     "gradio"
 ).run_commands("ls", "pwd")
 
-
-
 def get_mask(model, input_img, use_amp=True, s=640):
     input_img = (input_img / 255).astype(np.float32)
     h, w = h0, w0 = input_img.shape[:-1]
@@ -78,6 +76,7 @@ def get_mask(model, input_img, use_amp=True, s=640):
 @stub.function(
     image=seg_image,
     container_idle_timeout=120,
+    gpu="l4"
 )
 @web_endpoint(method="POST")
 def process_mask(file: dict):
